@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+        "strict": true,
+		"outDir": "dist",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"target": "esnext",
+		"module": "commonjs"
+	}
+}
