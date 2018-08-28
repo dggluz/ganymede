@@ -1,6 +1,6 @@
 import { createServer } from './server-utils/create-server';
 import { pingCtrl } from './controllers/ping.controller';
-import { newSearchCtrl } from './controllers/new-products-search.controller';
+import { newProductsSearchCtrl } from './controllers/new-products-search.controller';
 
 // TODO: read server data from package.json
 // TODO: tslint
@@ -8,8 +8,9 @@ import { newSearchCtrl } from './controllers/new-products-search.controller';
 // TODO: jsdocs
 // TODO: read configs and secrets from files
 // TODO: improve logging (winston?)
+// TODO: README
 
 const server = createServer();
 
 server.get('/ping', pingCtrl);
-server.post('/api/product/search', newSearchCtrl);
+server.post('/api/product/search', newProductsSearchCtrl);
