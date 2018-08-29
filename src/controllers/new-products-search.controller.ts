@@ -1,4 +1,4 @@
-import { Task, UncaughtError } from '@ts-task/task';
+import { Task } from '@ts-task/task';
 import { objOf, str, oneOf, anything } from 'ts-dynamic-type-checker';
 import { createEndpoint } from '../server-utils/create-endpoint';
 import { checkBody } from '../middlewares/check-body.middleware';
