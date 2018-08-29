@@ -24,10 +24,10 @@ export const overwrite = <A, B> (target: A, source: B) =>
 	) as any as Overwrite<A, B>
 ;
 
-export const taskContract = <T, E> (contract: (x: T) => T, errHandler: (err: TypeError) => E) =>
-	(x: T): Task<T, E | UncaughtError> => {
+export const taskValidation = <A, B, E> (validation: (x: A) => B, errHandler: (err: TypeError) => E) =>
+	(x: A): Task<B, E | UncaughtError> => {
 		try {
-			return Task.resolve(contract(x));
+			return Task.resolve(validation(x));
 		}
 		catch(err) {
 			return Task

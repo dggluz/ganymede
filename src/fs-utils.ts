@@ -2,7 +2,7 @@ import { readFile as rf } from 'fs';
 import { Task } from '@ts-task/task';
 import { IContract } from 'ts-dynamic-type-checker';
 import { share, isInstanceOf } from '@ts-task/utils';
-import { taskContract } from './utils';
+import { taskValidation } from './utils';
 
 export class FsError extends Error {
 	FsError = 'FsError';
@@ -55,7 +55,7 @@ export const readJSONFile = (path: string) =>
 
 export const readAndValidateJSONFile = <T> (path: string, contract: IContract<T>) =>
 	readJSONFile(path)
-		.chain(taskContract(contract, err => new InvalidJSONError(err)))
+		.chain(taskValidation(contract, err => new InvalidJSONError(err)))
 		.pipe(share())
 ;
 

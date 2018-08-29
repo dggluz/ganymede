@@ -1,6 +1,6 @@
 import { Task } from '@ts-task/task';
-import { share } from '@ts-task/utils';
-import { MongoClient, MongoError as _MongoError, Collection } from 'mongodb';
+import { share, isInstanceOf } from '@ts-task/utils';
+import { MongoClient, MongoError as _MongoError, Collection, FilterQuery, ObjectId } from 'mongodb';
 import { Omit } from 'type-zoo/types';
 import { secrets } from './secrets';
 
@@ -32,7 +32,7 @@ export const createMongoConnection = (url: string) =>
 	})
 ;
 
-export type MongoDocumentId = string;
+export type MongoDocumentId = ObjectId;
 
 export interface MongoDocument {
 	_id: MongoDocumentId;
@@ -46,17 +46,36 @@ const mongoInsertOne = <T extends MongoDocument>  (document: UninsertedDocument<
 			collection
 				.insertOne(document, (err, result) => {
 					if (err) {
-						reject(new MongoError(err));
+						reject(new MongoInsertError(err));
 					}
 					else {
 						if (result.insertedCount !== 1) {
-							reject(new MongoInsertError())
+							reject(new MongoInsertError(new Error('Could not insert the document')))
 						}
 						else {
 							resolve(result.ops[0]);
 						}
 					}
 				})
+		})
+;
+
+const mongoFindOne = <T extends MongoDocument> (criteria: FilterQuery<T>) =>
+	(collection: Collection<T>) =>
+		new Task<T, MongoFindError>((resolve, reject) => {
+			collection.findOne(criteria, (err, result) => {
+				if (err) {
+					reject(new MongoFindError(err));
+				}
+				else {
+					if (result === null) {
+						reject(new MongoFindError(new Error('Could not find the document')));
+					}
+					else {
+						resolve(result);
+					}
+				}
+			});
 		})
 ;
 
@@ -71,6 +90,18 @@ const dbCnx = secrets
 
 export class MongoInsertError extends Error {
 	MongoInsertError = 'MongoInsertError';
+	
+	constructor (public originalError: Error) {
+		super(originalError.message);
+	}
+}
+
+export class MongoFindError extends Error {
+	MongoFindError = 'MongoFindError';
+
+	constructor (public originalError: Error) {
+		super(originalError.message);
+	}
 }
 
 export const insertOneDocument = <T extends MongoDocument> (collectionName: string) =>
@@ -79,3 +110,13 @@ export const insertOneDocument = <T extends MongoDocument> (collectionName: stri
 			.map(db => db.collection(collectionName))
 			.chain(mongoInsertOne<T>(document))
 ;
+
+export const findOneDocument = <T extends MongoDocument> (collectionName: string) =>
+	// TODO: fix typings
+	(criteria: FilterQuery<T>) =>
+		dbCnx
+			.map(db => db.collection(collectionName))
+			.chain(mongoFindOne(criteria))
+;
+
+export const isMongoError = isInstanceOf(MongoError, MongoInsertError, MongoFindError);
