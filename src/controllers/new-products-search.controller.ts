@@ -1,12 +1,11 @@
-import { Task } from '@ts-task/task';
+import { Task, UncaughtError } from '@ts-task/task';
 import { objOf, str, oneOf, anything } from 'ts-dynamic-type-checker';
 import { createEndpoint } from '../server-utils/create-endpoint';
 import { checkBody } from '../middlewares/check-body.middleware';
-
-import { MongoError } from 'mongodb';
 import { caseError, isInstanceOf } from '@ts-task/utils';
 import { asUncaughtError } from '@ts-task/task/dist/lib/src/operators';
-import { insertOneDocument, MongoDocument } from '../mongo-utils';
+import { insertOneDocument, MongoDocument, MongoError, MongoInsertError } from '../mongo-utils';
+import { isJSONFileError } from '../fs-utils';
 
 // TODO: complete
 interface Product extends MongoDocument {
@@ -44,9 +43,7 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 			status: 'received',
 			products: []
 		}))
-		.map(x => x)
-		.catch(err => Task.reject(err))
-		.catch(caseError(isInstanceOf(MongoError), asUncaughtError))
-		.catch(err => Task.reject(err))
+		.catch(caseError(isInstanceOf(MongoError, MongoInsertError), err => asUncaughtError(err)))
+		.catch(caseError(isJSONFileError, err => asUncaughtError(err)))
 	)
 ;

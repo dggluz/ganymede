@@ -1,10 +1,16 @@
 import { Task } from '@ts-task/task';
 import { share } from '@ts-task/utils';
-import { MongoClient, MongoError, Collection } from 'mongodb';
+import { MongoClient, MongoError as _MongoError, Collection } from 'mongodb';
 import { Omit } from 'type-zoo/types';
 import { secrets } from './secrets';
 
-// TODO: make structural typings for MongoErrors distinguible of just errors
+export class MongoError extends Error {
+	MongoError = 'MongoError';
+
+	constructor (public originalError: _MongoError) {
+		super(originalError.message);
+	}
+}
 
 export const createMongoConnection = (url: string) =>
 	new Task<MongoClient, MongoError>((resolve, reject) => {
@@ -13,7 +19,7 @@ export const createMongoConnection = (url: string) =>
 				useNewUrlParser: true
 			}, (err, client) => {
 				if (err) {
-					reject(err);
+					reject(new MongoError(err));
 				}
 				else {
 					resolve(client);
@@ -40,7 +46,7 @@ const mongoInsertOne = <T extends MongoDocument>  (document: UninsertedDocument<
 			collection
 				.insertOne(document, (err, result) => {
 					if (err) {
-						reject(err);
+						reject(new MongoError(err));
 					}
 					else {
 						if (result.insertedCount !== 1) {

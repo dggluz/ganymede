@@ -3,7 +3,7 @@ import { pingCtrl } from './controllers/ping.controller';
 import { newProductsSearchCtrl } from './controllers/new-products-search.controller';
 
 // TODO: read server data from package.json
-// TODO: read configs and secrets from files
+// TODO: read configs from files
 // TODO: tslint
 // TODO: tests
 // TODO: jsdocs
