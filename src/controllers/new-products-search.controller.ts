@@ -6,12 +6,32 @@ import { checkBody } from '../middlewares/check-body.middleware';
 import { MongoError } from 'mongodb';
 import { caseError, isInstanceOf } from '@ts-task/utils';
 import { asUncaughtError } from '@ts-task/task/dist/lib/src/operators';
-import { insertOneDocument } from '../mongo-utils';
+import { insertOneDocument, MongoDocument } from '../mongo-utils';
+
+// TODO: complete
+interface Product extends MongoDocument {
+
+}
+
+interface SearchOrder extends MongoDocument {
+	searchData: SearchData;
+	status: 'received' | 'processing' | 'fulfilled' | 'failed';
+	products: Product[];
+}
+
+interface SearchData {
+	query: string;
+	provider: 'easy';
+	options: any;
+	callbackUrl: string;
+}
+
+const insertSearchOrder = insertOneDocument<SearchOrder>('search-order');
 
 export const newProductsSearchCtrl = createEndpoint(req =>
 	Task
 		.resolve(req)
-		.chain(checkBody(objOf({
+		.chain(checkBody(objOf<SearchData>({
 			query: str,
 			provider: oneOf('easy'),
 			// TODO: improve options typings (relate with the provider)
@@ -19,8 +39,11 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 			callbackUrl: str
 		})))
 		.map(req => req)
-		// TODO: add extra fields to document (searchData, status, products)
-		.chain(req => insertOneDocument('search-order', req.body))
+		.chain(req => insertSearchOrder({
+			searchData: req.body,
+			status: 'received',
+			products: []
+		}))
 		.map(x => x)
 		.catch(caseError(isInstanceOf(MongoError), asUncaughtError))
 	)

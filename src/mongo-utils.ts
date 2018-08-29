@@ -1,7 +1,7 @@
 import { Task } from '@ts-task/task';
 import { share } from '@ts-task/utils';
 import { MongoClient, MongoError, Collection } from 'mongodb';
-import { Overwrite } from 'type-zoo/types';
+import { Omit } from 'type-zoo/types';
 
 // TODO: make structural typings for MongoErrors distinguible of just errors
 
@@ -26,11 +26,16 @@ export const createMongoConnection = (url: string) =>
 ;
 
 export type MongoDocumentId = string;
-export type MongoDocument <T> = Overwrite<T, {_id: MongoDocumentId}>
 
-const mongoInsertOne = <T>  (document: T) =>
+export interface MongoDocument {
+	_id: MongoDocumentId;
+}
+
+export type UninsertedDocument <T> = Omit<T, '_id'>;
+
+const mongoInsertOne = <T extends MongoDocument>  (document: UninsertedDocument<T>) =>
 	(collection: Collection<T>) =>
-		new Task<MongoDocument<T>, MongoError | MongoInsertError>((resolve, reject) => {
+		new Task<T, MongoError | MongoInsertError>((resolve, reject) => {
 			collection
 				.insertOne(document, (err, result) => {
 					if (err) {
@@ -58,9 +63,9 @@ export class MongoInsertError extends Error {
 	MongoInsertError = 'MongoInsertError';
 }
 
-
-export const insertOneDocument = <T> (collectionName: string, document: T) =>
-	dbCnx
-		.map(db => db.collection(collectionName))
-		.chain(mongoInsertOne(document))
+export const insertOneDocument = <T extends MongoDocument> (collectionName: string) =>
+	(document: UninsertedDocument<T>) =>
+		dbCnx
+			.map(db => db.collection(collectionName))
+			.chain(mongoInsertOne<T>(document))
 ;
