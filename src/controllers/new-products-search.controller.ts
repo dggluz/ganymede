@@ -45,6 +45,8 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 			products: []
 		}))
 		.map(x => x)
+		.catch(err => Task.reject(err))
 		.catch(caseError(isInstanceOf(MongoError), asUncaughtError))
+		.catch(err => Task.reject(err))
 	)
 ;

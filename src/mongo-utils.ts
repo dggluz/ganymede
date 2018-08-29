@@ -2,6 +2,7 @@ import { Task } from '@ts-task/task';
 import { share } from '@ts-task/utils';
 import { MongoClient, MongoError, Collection } from 'mongodb';
 import { Omit } from 'type-zoo/types';
+import { secrets } from './secrets';
 
 // TODO: make structural typings for MongoErrors distinguible of just errors
 
@@ -53,8 +54,11 @@ const mongoInsertOne = <T extends MongoDocument>  (document: UninsertedDocument<
 		})
 ;
 
-const dbCnx = createMongoConnection('mongodb://localhost:27017')
-	.map(client => client.db('sirena'))
+const dbCnx = secrets
+	.chain(({mongo}) =>
+		createMongoConnection(`mongodb://${mongo.host}:${mongo.port}`)
+			.map(client => client.db(mongo.dbName))
+	)
 	.pipe(share())
 ;
 

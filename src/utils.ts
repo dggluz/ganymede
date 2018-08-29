@@ -1,4 +1,6 @@
 import { Overwrite } from 'type-zoo';
+import { Task, UncaughtError } from '@ts-task/task';
+import { isInstanceOf } from '@ts-task/utils';
 
 export const tap = <T> (fn: (x: T) => any) =>
 	(x: T) => {
@@ -21,3 +23,18 @@ export const overwrite = <A, B> (target: A, source: B) =>
 		source
 	) as any as Overwrite<A, B>
 ;
+
+export const taskContract = <T, E> (contract: (x: T) => T, errHandler: (err: TypeError) => E) =>
+	(x: T): Task<T, E | UncaughtError> => {
+		try {
+			return Task.resolve(contract(x));
+		}
+		catch(err) {
+			return Task
+				.reject(isInstanceOf(TypeError)(err) ?
+					errHandler(err) :
+					new UncaughtError(err)
+				)
+		}
+};
+
