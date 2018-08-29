@@ -8,6 +8,11 @@ import { newProductsSearchCtrl } from './controllers/new-products-search.control
 // TODO: improve logging (winston?)
 // TODO: README
 
+// TODO: call themisto
+// TODO: GET /api/product/search-order/{order-id}
+// TODO: GET /api/product/search-orders
+// TODO: GET /api/product/category/{product-category-id}
+
 createServer()
 	.fork(console.log, server => {
 		server.get('/ping', pingCtrl);
