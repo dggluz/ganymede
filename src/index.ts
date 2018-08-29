@@ -2,7 +2,6 @@ import { createServer } from './server-utils/create-server';
 import { pingCtrl } from './controllers/ping.controller';
 import { newProductsSearchCtrl } from './controllers/new-products-search.controller';
 
-// TODO: read server data from package.json
 // TODO: tslint
 // TODO: tests
 // TODO: jsdocs

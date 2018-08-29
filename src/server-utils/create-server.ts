@@ -1,12 +1,28 @@
 import { createServer as cs, plugins } from 'restify';
 import { configs } from '../configs';
+import { Task } from '@ts-task/task';
+import { readAndValidateJSONFile } from '../fs-utils';
+import { resolve } from 'path';
+import { objOf, str } from 'ts-dynamic-type-checker';
+
+const packageJson = readAndValidateJSONFile(
+	resolve(process.cwd(), 'package.json'),
+	objOf({
+		name: str,
+		version: str
+	})
+);
 
 export const createServer = () =>
-	configs
-		.map(configs => {
+	Task
+		.all([
+			configs,
+			packageJson
+		])
+		.map(([configs, {name, version}]) => {
 			const server = cs({
-				name: 'myapp',
-				version: '1.0.0'
+				name,
+				version
 			});
 		
 			server.use(plugins.acceptParser(server.acceptable));
