@@ -33,6 +33,13 @@ export const overwrite = <A, B> (target: A, source: B) =>
 	) as any as Overwrite<A, B>
 ;
 
+/**
+ * Takes a function that returns a sync result or throws an error and calls it from a
+ * Task, handling the error if it is a TypeError, with the errHandler function
+ * @param validation function that takes a parameter and returns a sync value or throws TypeError
+ * @param errHandler function that takes a TypeError and returns another Error
+ * @returns Task to the validation result, possible rejected with the results of the errHandler
+ */
 export const taskValidation = <A, B, E> (validation: (x: A) => B, errHandler: (err: TypeError) => E) =>
 	(x: A): Task<B, E | UncaughtError> => {
 		try {
