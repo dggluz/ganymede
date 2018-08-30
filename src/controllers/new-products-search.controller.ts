@@ -5,7 +5,8 @@ import { checkBody } from '../middlewares/check-body.middleware';
 import { caseError } from '@ts-task/utils';
 import { insertOneDocument, MongoDocument, isMongoError } from '../mongo-utils';
 import { isJSONFileError } from '../fs-utils';
-import { asUncaughtError } from '../utils';
+import { asUncaughtError, tapChain } from '../utils';
+import { isRequestErorr, postRequest } from '../make-request';
 
 // TODO: complete
 export interface Product extends MongoDocument {
@@ -25,6 +26,13 @@ export interface SearchData {
 	callbackUrl: string;
 }
 
+export interface ThemistoSearchRequest {
+	searchOrderId: string;
+	query: string;
+	provider: 'easy';
+	options: any;
+}
+
 const insertSearchOrder = insertOneDocument<SearchOrder>('search-order');
 
 export const newProductsSearchCtrl = createEndpoint(req =>
@@ -37,12 +45,25 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 			options: anything,
 			callbackUrl: str
 		})))
-		.map(req => req)
 		.chain(req => insertSearchOrder({
 			searchData: req.body,
 			status: 'received',
 			products: []
 		}))
+		.chain(tapChain(searchOrder => postRequest<ThemistoSearchRequest>('http://localhost:4000/api/query-product', {
+				searchOrderId: searchOrder._id.toHexString(),
+				query: searchOrder.searchData.query,
+				provider: searchOrder.searchData.provider,
+				options: searchOrder.searchData.options
+			})
+				.catch(err => {
+					console.log('##################################');
+					console.log(err);
+					console.log('##################################');
+					return Task.reject(err);
+				})
+		))
+		.catch(caseError(isRequestErorr, err => asUncaughtError(err)))
 		.catch(caseError(isMongoError, err => asUncaughtError(err)))
 		.catch(caseError(isJSONFileError, err => asUncaughtError(err)))
 	)

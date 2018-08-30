@@ -14,6 +14,12 @@ export const tap = <T> (fn: (x: T) => any) =>
 	}
 ;
 
+export const tapChain = <A, E> (fn: (x: A) => Task<any, E>) =>
+	(x: A) =>
+		fn(x)
+			.map(_ => x)
+;
+
 /**
  * Does nothing
  * @return undefined
