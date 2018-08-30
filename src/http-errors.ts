@@ -17,6 +17,18 @@ export class BadRequestError extends HttpError {
 	}
 }
 
+export class NotFoundError extends HttpError {
+	NotFoundError = 'NotFoundError';
+
+	errorCode = 404;
+	errorMessage = 'Entity not found';
+
+	constructor (message: string) {
+		super(message);
+		this.errorMessage = message;
+	}
+}
+
 export class InternalServerError extends HttpError {
 	InternalServerError = 'InternalServerError';
 }

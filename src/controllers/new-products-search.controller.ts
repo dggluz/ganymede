@@ -3,9 +3,9 @@ import { objOf, str, oneOf, anything } from 'ts-dynamic-type-checker';
 import { createEndpoint } from '../server-utils/create-endpoint';
 import { checkBody } from '../middlewares/check-body.middleware';
 import { caseError } from '@ts-task/utils';
-import { asUncaughtError } from '@ts-task/task/dist/lib/src/operators';
 import { insertOneDocument, MongoDocument, isMongoError } from '../mongo-utils';
 import { isJSONFileError } from '../fs-utils';
+import { asUncaughtError } from '../utils';
 
 // TODO: complete
 export interface Product extends MongoDocument {

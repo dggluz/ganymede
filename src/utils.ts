@@ -38,3 +38,5 @@ export const taskValidation = <A, B, E> (validation: (x: A) => B, errHandler: (e
 		}
 };
 
+export const asUncaughtError = (err: any) => Task.reject(new UncaughtError(err));
+ 

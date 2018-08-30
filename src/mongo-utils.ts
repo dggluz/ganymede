@@ -62,14 +62,14 @@ const mongoInsertOne = <T extends MongoDocument>  (document: UninsertedDocument<
 
 const mongoFindOne = <T extends MongoDocument> (criteria: FilterQuery<T>) =>
 	(collection: Collection<T>) =>
-		new Task<T, MongoFindError>((resolve, reject) => {
+		new Task<T, MongoError | MongoDocumentDoesNotExistError<T>>((resolve, reject) => {
 			collection.findOne(criteria, (err, result) => {
 				if (err) {
-					reject(new MongoFindError(err));
+					reject(new MongoError(err));
 				}
 				else {
 					if (result === null) {
-						reject(new MongoFindError(new Error('Could not find the document')));
+						reject(new MongoDocumentDoesNotExistError<T>(criteria));
 					}
 					else {
 						resolve(result);
@@ -96,11 +96,11 @@ export class MongoInsertError extends Error {
 	}
 }
 
-export class MongoFindError extends Error {
-	MongoFindError = 'MongoFindError';
+export class MongoDocumentDoesNotExistError <T> extends Error {
+	MongoDocumentDoesNotExist = 'MongoDocumentDoesNotExist';
 
-	constructor (public originalError: Error) {
-		super(originalError.message);
+	constructor (public criteria: FilterQuery<T>) {
+		super('MongoDocument not found');
 	}
 }
 
@@ -119,4 +119,4 @@ export const findOneDocument = <T extends MongoDocument> (collectionName: string
 			.chain(mongoFindOne(criteria))
 ;
 
-export const isMongoError = isInstanceOf(MongoError, MongoInsertError, MongoFindError);
+export const isMongoError = isInstanceOf(MongoError, MongoInsertError);
