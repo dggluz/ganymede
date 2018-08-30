@@ -9,8 +9,17 @@ export const tap = <T> (fn: (x: T) => any) =>
 	}
 ;
 
+/**
+ * Does nothing
+ * @return undefined
+ */
 export const noop = () => undefined;
 
+/**
+ * Logs an error to the console
+ * @param err 
+ * @return undefined
+ */
 export const logUnhandledError = (err: Error) => {
 	console.error('Unhandled error!', err);
 };
