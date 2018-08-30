@@ -2,6 +2,11 @@ import { Overwrite } from 'type-zoo';
 import { Task, UncaughtError } from '@ts-task/task';
 import { isInstanceOf } from '@ts-task/utils';
 
+/**
+ * Calls `fn` performing its side effects but discarding its return value and returning the input parameter instead.
+ * @param fn Unary function that performs side effects and whose return value will be discarded
+ * @returns "tapped" `fn`
+ */
 export const tap = <T> (fn: (x: T) => any) =>
 	(x: T) => {
 		fn(x);
@@ -24,7 +29,13 @@ export const logUnhandledError = (err: Error) => {
 	console.error('Unhandled error!', err);
 };
 
-
+/**
+ * Overwrite takes two objects and returns a new one, that is like the first one,
+ * overwritten with the second one. Mantains prototype chain of the firs object (in the result).
+ * @param target original object
+ * @param source object with the properties to overwrite
+ * @returns "merged" object
+ */
 export const overwrite = <A, B> (target: A, source: B) =>
 	Object.assign(
 		Object.create(target.constructor.prototype),
@@ -54,5 +65,9 @@ export const taskValidation = <A, B, E> (validation: (x: A) => B, errHandler: (e
 		}
 };
 
+/**
+ * Takes and error and wraps it in an UncaughtError
+ * @param err Error (<E>)
+ * @returns UncaughtError<E> wrapping err
+ */
 export const asUncaughtError = (err: any) => Task.reject(new UncaughtError(err));
- 
