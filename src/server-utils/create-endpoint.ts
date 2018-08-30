@@ -4,7 +4,14 @@ import { Request, Response } from 'restify';
 import { tap, logUnhandledError, noop } from '../utils';
 import { caseError, isInstanceOf } from '@ts-task/utils';
 
-export const createEndpoint = (controller: (req: Request) => Task<object, HttpError | UncaughtError>) =>
+/**
+ * Takes a controller function and sends its result to the client, managing errors.
+ * @param controller function with the endpoint functionality, takes only a Request parameter
+ * 					and should return a Task resolved with the response or rejected with an
+ * 					HttpError or an UncaughtError
+ * @return function to set as an endpoint to the restify server (whith methods .get, .post, etc.).
+ */
+export const createEndpoint = <T> (controller: (req: Request) => Task<T, HttpError | UncaughtError>) =>
 	(req: Request, res: Response) =>
 		controller(req)
 			.map(tap(result => res.send(200, result)))

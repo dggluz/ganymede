@@ -5,6 +5,9 @@ import { readAndValidateJSONFile } from '../fs-utils';
 import { resolve } from 'path';
 import { objOf, str } from 'ts-dynamic-type-checker';
 
+/**
+ * Task to the content of the package.json file, parsed, validated and shared.
+ */
 const packageJson = readAndValidateJSONFile(
 	resolve(process.cwd(), 'package.json'),
 	objOf({
@@ -13,6 +16,11 @@ const packageJson = readAndValidateJSONFile(
 	})
 );
 
+/**
+ * Creates a restify Server with basic configuration and taking part of its configuration
+ * from the package.json and the configs.json files.
+ * @return Server
+*/
 export const createServer = () =>
 	Task
 		.all([
@@ -33,6 +41,6 @@ export const createServer = () =>
 				console.log('%s listening at %s', server.name, server.url);
 			});
 		
-			return server;			
+			return server;
 		})
 ;
