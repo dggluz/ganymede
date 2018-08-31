@@ -3,7 +3,7 @@ import { objOf, str, oneOf, anything } from 'ts-dynamic-type-checker';
 import { createEndpoint } from '../server-utils/create-endpoint';
 import { checkBody } from '../middlewares/check-body.middleware';
 import { caseError } from '@ts-task/utils';
-import { insertOneDocument, MongoDocument, isMongoError } from '../mongo-utils';
+import { insertOneDocument, MongoDocument, isMongoError, updateOneDocument, MongoDocumentId } from '../mongo-utils';
 import { isJSONFileError } from '../fs-utils';
 import { asUncaughtError, tapChain } from '../utils';
 import { isRequestError, postRequest } from '../make-request';
@@ -12,13 +12,20 @@ import { configs } from '../configs';
 
 // TODO: complete
 export interface Product extends MongoDocument {
-
+	sku: string;
+	name: string;
+	price: number;
+	originalPrice: number;
+	category: string;
+	description: string;
+	images: string[];
+	relatedSearchQueries: MongoDocumentId[];
 }
 
 export interface SearchOrder extends MongoDocument {
 	searchData: SearchData;
 	status: 'received' | 'processing' | 'fulfilled' | 'failed';
-	products: Product[];
+	products: MongoDocumentId[];
 }
 
 export interface SearchData {
@@ -36,6 +43,8 @@ export interface ThemistoSearchRequest {
 }
 
 const insertSearchOrder = insertOneDocument<SearchOrder>('search-order');
+
+export const updateSearchOrder = updateOneDocument<SearchOrder>('search-order');
 
 export const newProductsSearchCtrl = createEndpoint(req =>
 	Task
@@ -66,6 +75,15 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 							auth: secrets.auth.myself
 						}
 					)
+					.chain(tapChain(_ =>
+						updateSearchOrder({
+							_id: searchOrder._id
+						}, {
+							$set: {
+								status: 'processing'
+							}
+						})
+					))
 				)
 		))
 		.catch(caseError(isRequestError, err => asUncaughtError(err)))

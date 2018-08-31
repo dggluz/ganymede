@@ -6,7 +6,10 @@ import { caseError } from '@ts-task/utils';
 import { isJSONFileError } from '../fs-utils';
 import { asUncaughtError } from '../utils';
 import { checkBody } from '../middlewares/check-body.middleware';
-import { union, strictObjOf, str, oneOf, arrOf, num } from 'ts-dynamic-type-checker';
+import { strictObjOf, str, oneOf, arrOf, num, optional } from 'ts-dynamic-type-checker';
+import { updateSearchOrder } from './new-products-search.controller';
+import { MongoDocumentId, isMongoError } from '../mongo-utils';
+import { objectOfLike, mongoIdLike } from '../type-like';
 
 export interface ProductInformation {
 	sku: string;
@@ -18,20 +21,12 @@ export interface ProductInformation {
 	images: string[];
 }
 
-export interface SearchSuccessfulResult {
-	searchOrderId: string;
+export interface SearchResults {
+	searchOrderId: MongoDocumentId;
 	query: string;
-	status: 'fulfilled';
-	products: ProductInformation[];
+	status: 'fulfilled' | 'failed';
+	products?: ProductInformation[];
 }
-
-export interface SearchFailedResult {
-	searchOrderId: string;
-	query: string;
-	status: 'failed';
-}
-
-export type SearchResults = SearchSuccessfulResult | SearchFailedResult;
 
 const productsInformationContract = strictObjOf<ProductInformation>({
 	sku: str,
@@ -43,23 +38,13 @@ const productsInformationContract = strictObjOf<ProductInformation>({
 	images: arrOf(str)
 });
 
-const searchSuccessfulResultContract = strictObjOf<SearchSuccessfulResult>({
-	searchOrderId: str,
-	query: str,
-	status: oneOf('fulfilled'),
-	products: arrOf(productsInformationContract)
-});
 
-const searchFailedResultContract = strictObjOf<SearchFailedResult>({
-	searchOrderId: str,
+const searchResultContract = objectOfLike<SearchResults>({
+	searchOrderId: mongoIdLike,
 	query: str,
-	status: oneOf('failed')
+	status: oneOf('fulfilled', 'failed'),
+	products: optional(arrOf(productsInformationContract))
 });
-
-const searchResultContract = union(
-	searchSuccessfulResultContract,
-	searchFailedResultContract
-);
 
 export const saveSearchResultsCtrl = createEndpoint(req => 
 	Task
@@ -67,8 +52,17 @@ export const saveSearchResultsCtrl = createEndpoint(req =>
 		.chain(basicAuthMiddleware)
 		.chain(authorizationMiddleware('save-search-results'))
 		.chain(checkBody(searchResultContract))
-
 		// TODO: functionality
-
+		.chain(req => updateSearchOrder({
+			_id: req.body.searchOrderId
+		}, {
+			$set: {
+				status: req.body.status,
+				// TODO: upsert products, then relate here
+				products: []
+			}
+		}))
 		.catch(caseError(isJSONFileError, err => asUncaughtError(err)))
+		.catch(caseError(isMongoError, err => asUncaughtError(err)))
+		.pipe(t => t)
 );

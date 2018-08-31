@@ -1,6 +1,6 @@
 import { Task } from '@ts-task/task';
 import { share, isInstanceOf } from '@ts-task/utils';
-import { MongoClient, MongoError as _MongoError, Collection, FilterQuery, ObjectId } from 'mongodb';
+import { MongoClient, MongoError as _MongoError, Collection, FilterQuery, ObjectId, UpdateWriteOpResult } from 'mongodb';
 import { Omit } from 'type-zoo/types';
 import { secrets } from './secrets';
 
@@ -79,6 +79,25 @@ const mongoFindOne = <T extends MongoDocument> (criteria: FilterQuery<T>) =>
 		})
 ;
 
+// Note I didn't implement the $unset and $rename update operators since I'm not using them
+interface MongoUpdate <T> {
+	$set: Partial<T>;
+}
+
+const mongoUpdateOne = <T extends MongoDocument> (criteria: FilterQuery<T>, update: MongoUpdate<T>) =>
+	(collection: Collection<T>) =>
+		new Task<UpdateWriteOpResult, MongoError>((resolve, reject) => {
+			collection.updateOne(criteria, update, (err, result) => {
+				if (err) {
+					reject(new MongoError(err));
+				}
+				else {
+					resolve(result);
+				}
+			})
+		})
+;
+
 const dbCnx = secrets
 	.chain(({mongo}) =>
 		createMongoConnection(`mongodb://${mongo.host}:${mongo.port}`)
@@ -116,6 +135,13 @@ export const findOneDocument = <T extends MongoDocument> (collectionName: string
 		dbCnx
 			.map(db => db.collection(collectionName))
 			.chain(mongoFindOne(criteria))
+;
+
+export const updateOneDocument = <T extends MongoDocument> (collectionName: string) =>
+	(criteria: FilterQuery<T>, update: MongoUpdate<T>) =>
+		dbCnx
+			.map(db => db.collection(collectionName))
+			.chain(mongoUpdateOne(criteria, update))
 ;
 
 export const isMongoError = isInstanceOf(MongoError, MongoInsertError);
