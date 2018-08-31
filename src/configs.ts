@@ -1,6 +1,6 @@
 import { readAndValidateJSONFile } from './fs-utils';
 import { resolve } from 'path';
-import { strictObjOf, num, str } from 'ts-dynamic-type-checker';
+import { strictObjOf, num, str, arrOf } from 'ts-dynamic-type-checker';
 
 /**
  * Contract (see ts-dynamic-type-checker) to validate against the
@@ -13,6 +13,10 @@ const configsContract = strictObjOf({
 	server: strictObjOf({
 		port: num
 	}),
+	permissions: arrOf(strictObjOf({
+		permissionName: str,
+		authorizedUsers: arrOf(str)
+	})),
 	themisto: strictObjOf({
 		searchProduct: strictObjOf({
 			url: str

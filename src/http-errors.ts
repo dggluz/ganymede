@@ -36,6 +36,34 @@ export class BadRequestError extends HttpError {
 }
 
 /**
+ * UnauthorizedError (status code 401)
+ * @constructor
+ * @extends HttpError
+ */
+export class UnauthorizedError extends HttpError {
+	UnauthorizedError = 'UnauthorizedError';
+
+	errorCode = 401;
+	errorMessage = 'Unauthorized';
+
+	constructor () {
+		super('Authorization token is absent or invalid');
+	}
+}
+
+/**
+ * ForbiddenError (status code 403)
+ * @constructor
+ * @extends HttpError
+ */
+export class ForbiddenError extends HttpError {
+	ForbiddenError = 'ForbiddenError';
+
+	errorCode = 403;
+	errorMessage = 'Forbidden';
+}
+
+/**
  * NotFoundError (status code 404)
  * @constructor
  * @extends HttpError

@@ -14,6 +14,11 @@ export const tap = <T> (fn: (x: T) => any) =>
 	}
 ;
 
+/**
+ * Takes a function that returns a Task and calls it but mapping the resolved value to the input value.
+ * @param fn Unary function that performs side effects and returns a Task.
+ * @returns Task resolved with the input value or rejected with the rejected values from the output Task.
+ */
 export const tapChain = <A, E> (fn: (x: A) => Task<any, E>) =>
 	(x: A) =>
 		fn(x)
@@ -77,3 +82,28 @@ export const taskValidation = <A, B, E> (validation: (x: A) => B, errHandler: (e
  * @returns UncaughtError<E> wrapping err
  */
 export const asUncaughtError = (err: any) => Task.reject(new UncaughtError(err));
+
+/**
+ * Decodes a base64 encoded string
+ * @param base64EncodedString 
+ * @returns decoded string
+ */
+export const base64Decode = (base64EncodedString: string) =>
+	Buffer
+		.from(base64EncodedString, 'base64')
+		.toString()
+;
+
+/**
+ * Takes a predicate and an error. Returns a function to a Task that is resolved with the input value
+ * if the predicate evaluates to `true` or is rejected with the error otherwise. 
+ * @param condition sync predicate
+ * @param error error to throw if the condition returns `false`
+ * @returns Task rejected with the error or resolved with the value.
+ */
+export const rejectIf = <T, E> (condition: (x: T) => boolean, error: E) =>
+	(x: T): Task<T, E> =>
+		condition(x) ?
+			Task.reject(error) :
+			Task.resolve(x)
+;

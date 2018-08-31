@@ -112,7 +112,6 @@ export const insertOneDocument = <T extends MongoDocument> (collectionName: stri
 ;
 
 export const findOneDocument = <T extends MongoDocument> (collectionName: string) =>
-	// TODO: fix typings
 	(criteria: FilterQuery<T>) =>
 		dbCnx
 			.map(db => db.collection(collectionName))
