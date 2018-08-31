@@ -49,4 +49,4 @@ export const getRequest = <T = any> (url: string, options: request.CoreOptions =
 	})
 ;
 
-export const isRequestErorr = isInstanceOf(RequestError, RequestNotSuccessfulError);
+export const isRequestError = isInstanceOf(RequestError, RequestNotSuccessfulError);

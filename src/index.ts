@@ -9,7 +9,6 @@ import { getOrderByIdCtrl } from './controllers/get-order-by-id.controller';
 // TODO: improve logging (winston?)
 // TODO: README
 
-// TODO: call themisto
 // TODO: call back to callbackUrl
 // TODO: GET /api/product/search-orders
 // TODO: GET /api/product/category/{product-category-id}

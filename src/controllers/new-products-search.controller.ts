@@ -6,7 +6,9 @@ import { caseError } from '@ts-task/utils';
 import { insertOneDocument, MongoDocument, isMongoError } from '../mongo-utils';
 import { isJSONFileError } from '../fs-utils';
 import { asUncaughtError, tapChain } from '../utils';
-import { isRequestErorr, postRequest } from '../make-request';
+import { isRequestError, postRequest } from '../make-request';
+import { secrets } from '../secrets';
+import { configs } from '../configs';
 
 // TODO: complete
 export interface Product extends MongoDocument {
@@ -50,20 +52,23 @@ export const newProductsSearchCtrl = createEndpoint(req =>
 			status: 'received',
 			products: []
 		}))
-		.chain(tapChain(searchOrder => postRequest<ThemistoSearchRequest>('http://localhost:4000/api/query-product', {
-				searchOrderId: searchOrder._id.toHexString(),
-				query: searchOrder.searchData.query,
-				provider: searchOrder.searchData.provider,
-				options: searchOrder.searchData.options
-			})
-				.catch(err => {
-					console.log('##################################');
-					console.log(err);
-					console.log('##################################');
-					return Task.reject(err);
-				})
+		.chain(tapChain(searchOrder =>
+			Task
+				.all([secrets, configs])
+				.chain(([secrets, configs]) =>
+					postRequest<ThemistoSearchRequest>(
+						configs.themisto.searchProduct.url, {
+							searchOrderId: searchOrder._id.toHexString(),
+							query: searchOrder.searchData.query,
+							provider: searchOrder.searchData.provider,
+							options: searchOrder.searchData.options
+						}, {
+							auth: secrets.auth.myself
+						}
+					)
+				)
 		))
-		.catch(caseError(isRequestErorr, err => asUncaughtError(err)))
+		.catch(caseError(isRequestError, err => asUncaughtError(err)))
 		.catch(caseError(isMongoError, err => asUncaughtError(err)))
 		.catch(caseError(isJSONFileError, err => asUncaughtError(err)))
 	)
