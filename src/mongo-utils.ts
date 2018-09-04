@@ -81,7 +81,9 @@ const mongoFindOne = <T extends MongoDocument> (criteria: FilterQuery<T>) =>
 
 // Note I didn't implement the $unset and $rename update operators since I'm not using them
 interface MongoUpdate <T> {
-	$set: Partial<T>;
+	$set?: Partial<T>;
+	// TODO: improve typings
+	$addToSet?: any;
 }
 
 const mongoUpdateOne = <T extends MongoDocument> (criteria: FilterQuery<T>, update: MongoUpdate<T>) =>

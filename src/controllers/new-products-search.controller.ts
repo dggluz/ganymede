@@ -10,6 +10,8 @@ import { isRequestError, postRequest } from '../make-request';
 import { secrets } from '../secrets';
 import { configs } from '../configs';
 
+export type Provider = 'easy';
+
 // TODO: complete
 export interface Product extends MongoDocument {
 	sku: string;
@@ -20,6 +22,7 @@ export interface Product extends MongoDocument {
 	description: string;
 	images: string[];
 	relatedSearchQueries: MongoDocumentId[];
+	provider: Provider;
 }
 
 export interface SearchOrder extends MongoDocument {
@@ -30,7 +33,7 @@ export interface SearchOrder extends MongoDocument {
 
 export interface SearchData {
 	query: string;
-	provider: 'easy';
+	provider: Provider;
 	options: any;
 	callbackUrl: string;
 }
